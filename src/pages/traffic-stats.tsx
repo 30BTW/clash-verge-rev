@@ -27,8 +27,6 @@ import {
 import DataUsageRoundedIcon from '@mui/icons-material/DataUsageRounded'
 import PublicRoundedIcon from '@mui/icons-material/PublicRounded'
 import AppsRoundedIcon from '@mui/icons-material/AppsRounded'
-import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward'
-import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward'
 
 import { BasePage } from '@/components/base'
 import parseTraffic from '@/utils/parse-traffic'
@@ -339,7 +337,7 @@ export default function TrafficStatsPage() {
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
     <Box sx={{ textAlign: 'center' }}>
-      <Typography variant="h5" fontWeight="bold">
+      <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
         {value}
       </Typography>
       <Typography variant="body2" color="text.secondary">
