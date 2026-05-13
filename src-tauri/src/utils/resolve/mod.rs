@@ -70,6 +70,7 @@ pub fn resolve_setup_async() {
             init_auto_lightweight_boot(),
             init_auto_backup(),
             init_silent_updater(),
+            init_traffic_stats(),
         );
 
         Handle::refresh_clash();
@@ -209,6 +210,12 @@ pub(super) async fn init_window() {
         Handle::global().set_activation_policy_accessory();
     }
     WindowManager::create_window(!is_silent_start).await;
+}
+
+pub(super) async fn init_traffic_stats() {
+    use crate::traffic_stats::TrafficStatsManager;
+    logging!(info, Type::Setup, "Starting traffic stats manager...");
+    TrafficStatsManager::global().start();
 }
 
 pub fn resolve_done() {

@@ -9,6 +9,7 @@ mod enhance;
 mod feat;
 mod module;
 mod process;
+pub mod traffic_stats;
 pub mod utils;
 
 use crate::constants::files;
@@ -205,6 +206,8 @@ mod app_init {
             cmd::restore_webdav_backup,
             cmd::get_unlock_items,
             cmd::check_media_unlock,
+            cmd::query_traffic_stats,
+            cmd::get_traffic_summary,
         ]
     }
 }

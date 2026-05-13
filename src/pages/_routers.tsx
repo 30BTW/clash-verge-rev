@@ -1,4 +1,5 @@
 import DnsRoundedIcon from '@mui/icons-material/DnsRounded'
+import DataUsageRoundedIcon from '@mui/icons-material/DataUsageRounded'
 import ForkRightRoundedIcon from '@mui/icons-material/ForkRightRounded'
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded'
 import LanguageRoundedIcon from '@mui/icons-material/LanguageRounded'
@@ -24,6 +25,7 @@ import ProfilesPage from './profiles'
 import ProxiesPage from './proxies'
 import RulesPage from './rules'
 import SettingsPage from './settings'
+import TrafficStatsPage from './traffic-stats'
 import UnlockPage from './unlock'
 
 export const navItems = [
@@ -56,6 +58,12 @@ export const navItems = [
     path: '/rules',
     icon: [<ForkRightRoundedIcon key="mui" />, <RulesSvg key="svg" />],
     Component: RulesPage,
+  },
+  {
+    label: 'layout.components.navigation.tabs.trafficStats',
+    path: '/traffic-stats',
+    icon: [<DataUsageRoundedIcon key="mui" />, <DataUsageRoundedIcon key="svg" />],
+    Component: TrafficStatsPage,
   },
   {
     label: 'layout.components.navigation.tabs.logs',

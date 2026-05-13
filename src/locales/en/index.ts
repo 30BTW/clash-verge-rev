@@ -8,6 +8,7 @@ import rules from './rules.json'
 import settings from './settings.json'
 import shared from './shared.json'
 import tests from './tests.json'
+import trafficStats from './traffic-stats.json'
 
 const resources = {
   connections: connections,
@@ -20,6 +21,7 @@ const resources = {
   settings: settings,
   shared: shared,
   tests: tests,
+  trafficStats: trafficStats,
 }
 
 export default resources
