@@ -191,6 +191,7 @@ export interface TranslationResources {
             proxies: string
             rules: string
             settings: string
+            trafficStats: string
             unlock: string
           }
         }
@@ -1404,6 +1405,37 @@ export interface TranslationResources {
           }
           title: string
         }
+      }
+    }
+    trafficStats: {
+      filter: {
+        allTime: string
+        byDomain: string
+        byProcess: string
+        thisMonth: string
+        thisWeek: string
+        timeRange: string
+        today: string
+      }
+      page: {
+        title: string
+      }
+      summary: {
+        title: string
+        totalConnections: string
+        totalDownload: string
+        totalUpload: string
+        uniqueDomains: string
+        uniqueProcesses: string
+      }
+      table: {
+        connections: string
+        domain: string
+        download: string
+        noData: string
+        process: string
+        total: string
+        upload: string
       }
     }
   }

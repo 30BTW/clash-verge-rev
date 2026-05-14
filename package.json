@@ -10,6 +10,8 @@
     "dev:tauri": "cross-env RUST_BACKTRACE=full tauri dev -f tauri-dev",
     "build": "cross-env NODE_OPTIONS='--max-old-space-size=4096' tauri build",
     "build:fast": "cross-env NODE_OPTIONS='--max-old-space-size=4096' tauri build -- --profile fast-release",
+    "deploy:local": "powershell -ExecutionPolicy Bypass -File deploy-to-local.ps1",
+    "deploy:local:fast": "powershell -ExecutionPolicy Bypass -File deploy-to-local.ps1 -Fast",
     "tauri": "tauri",
     "web:dev": "vite",
     "web:build": "tsc --noEmit && vite build",
