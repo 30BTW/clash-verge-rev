@@ -8,7 +8,7 @@ use tokio::sync::mpsc;
 
 use super::types::{ConnectionSnapshot, TrafficRecord};
 use crate::core::handle;
-use clash_verge_logging::{logging, Type};
+use clash_verge_logging::{Type, logging};
 
 /// 轮询间隔 (毫秒) - 1秒，平衡性能和准确性
 const POLL_INTERVAL_MS: u64 = 1000;
@@ -31,8 +31,7 @@ impl ConnectionMonitor {
     /// 启动监控任务 (轮询模式)
     pub async fn start(&self) {
         logging!(info, Type::System, "Traffic stats monitor started");
-        let mut interval =
-            tokio::time::interval(std::time::Duration::from_millis(POLL_INTERVAL_MS));
+        let mut interval = tokio::time::interval(std::time::Duration::from_millis(POLL_INTERVAL_MS));
 
         loop {
             interval.tick().await;
@@ -89,8 +88,7 @@ impl ConnectionMonitor {
 
     /// 获取连接列表
     async fn fetch_connections(&self) -> Result<Vec<Connection>> {
-        let mihomo = handle::Handle::mihomo().await;
-        let response = mihomo.get_connections().await?;
+        let response = handle::Handle::mihomo().await.get_connections().await?;
         Ok(response.connections.unwrap_or_default())
     }
 
@@ -100,8 +98,7 @@ impl ConnectionMonitor {
         let mut active = self.active_connections.lock();
 
         // 构建新连接 ID 集合
-        let new_ids: std::collections::HashSet<String> =
-            connections.iter().map(|c| c.id.clone()).collect();
+        let new_ids: std::collections::HashSet<String> = connections.iter().map(|c| c.id.clone()).collect();
 
         // 检测关闭的连接，生成记录
         let closed_records: Vec<TrafficRecord> = active
@@ -131,21 +128,24 @@ impl ConnectionMonitor {
         }
 
         if closed_count > 0 {
-            logging!(info, Type::System, "Traffic stats: detected {} closed connections", closed_count);
+            logging!(
+                info,
+                Type::System,
+                "Traffic stats: detected {} closed connections",
+                closed_count
+            );
         }
 
         // 更新活跃连接快照：移除已关闭的，更新/添加活跃的
         active.retain(|id, _| new_ids.contains(id));
 
         for conn in connections {
-            if let Some(snapshot) = self.parse_connection(&conn) {
-                active.insert(conn.id, snapshot);
-            }
+            active.insert(conn.id.clone(), self.parse_connection(&conn));
         }
     }
 
     /// 解析连接数据
-    fn parse_connection(&self, conn: &Connection) -> Option<ConnectionSnapshot> {
+    fn parse_connection(&self, conn: &Connection) -> ConnectionSnapshot {
         let metadata = &conn.metadata;
 
         // 提取域名和主机
@@ -178,7 +178,7 @@ impl ConnectionMonitor {
             Some(metadata.process_path.clone())
         };
 
-        Some(ConnectionSnapshot {
+        ConnectionSnapshot {
             id: conn.id.clone(),
             host,
             domain,
@@ -193,6 +193,6 @@ impl ConnectionMonitor {
             rule: conn.rule.clone(),
             network: format!("{:?}", metadata.network).to_lowercase(),
             source_ip: metadata.source_ip.clone(),
-        })
+        }
     }
 }

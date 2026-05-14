@@ -212,6 +212,7 @@ pub(super) async fn init_window() {
     WindowManager::create_window(!is_silent_start).await;
 }
 
+#[expect(clippy::unused_async)]
 pub(super) async fn init_traffic_stats() {
     use crate::traffic_stats::TrafficStatsManager;
     logging!(info, Type::Setup, "Starting traffic stats manager...");

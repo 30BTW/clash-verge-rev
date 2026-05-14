@@ -5,7 +5,7 @@ use tokio::sync::mpsc::error::TryRecvError;
 
 use super::store::SQLiteStore;
 use super::types::TrafficRecord;
-use clash_verge_logging::{logging, Type};
+use clash_verge_logging::{Type, logging};
 
 /// 批量写入触发阈值 (记录数)
 const BATCH_SIZE: usize = 100;
@@ -26,10 +26,8 @@ impl RecordBatcher {
     }
 
     /// 启动批量写入任务 (使用 std::thread 避免阻塞 tokio 运行时)
-    pub fn spawn(
-        self,
-        mut record_rx: mpsc::Receiver<TrafficRecord>,
-    ) -> std::thread::JoinHandle<()> {
+    pub fn spawn(self, mut record_rx: mpsc::Receiver<TrafficRecord>) -> std::thread::JoinHandle<()> {
+        #[expect(clippy::expect_used)]
         std::thread::Builder::new()
             .name("traffic-stats-batcher".into())
             .spawn(move || {
@@ -56,6 +54,7 @@ impl RecordBatcher {
                                 if !buffer.is_empty() {
                                     self.flush_buffer(&mut buffer);
                                 }
+                                drop(buffer);
                                 last_flush = std::time::Instant::now();
                             }
                             // 短暂休眠避免 CPU 空转
@@ -67,6 +66,7 @@ impl RecordBatcher {
                             if !buffer.is_empty() {
                                 self.flush_buffer(&mut buffer);
                             }
+                            drop(buffer);
                             break;
                         }
                     }
@@ -82,7 +82,7 @@ impl RecordBatcher {
         }
 
         let count = buffer.len();
-        let records: Vec<TrafficRecord> = buffer.drain(..).collect();
+        let records = std::mem::take(buffer);
 
         if let Err(err) = self.store.insert_batch(&records) {
             logging!(error, Type::System, "Traffic stats batch write failed: {err}");
@@ -92,6 +92,7 @@ impl RecordBatcher {
     }
 
     /// 强制刷新 (用于退出时)
+    #[expect(dead_code)]
     pub fn force_flush(&self) {
         let mut buffer = self.buffer.lock();
         if !buffer.is_empty() {

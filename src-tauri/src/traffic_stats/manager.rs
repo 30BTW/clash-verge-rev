@@ -11,7 +11,7 @@ use super::store::SQLiteStore;
 use super::types::{TrafficAggregate, TrafficQueryParams, TrafficRecord, TrafficSummary};
 use crate::process::AsyncHandler;
 use crate::utils::dirs;
-use clash_verge_logging::{logging, Type};
+use clash_verge_logging::{Type, logging};
 
 pub struct TrafficStatsManager {
     store: Arc<SQLiteStore>,
@@ -37,19 +37,16 @@ impl TrafficStatsManager {
     }
 
     pub fn global() -> &'static Self {
-        TRAFFIC_STATS_MANAGER.get_or_init(|| {
-            TrafficStatsManager::new().expect("Failed to initialize TrafficStatsManager")
-        })
+        #[expect(clippy::expect_used)]
+        TRAFFIC_STATS_MANAGER
+            .get_or_init(|| Self::new().expect("Failed to initialize TrafficStatsManager"))
     }
 
     /// 启动后台采集任务
     pub fn start(&self) {
         let mut handle = self.task_handle.lock();
 
-        if handle
-            .as_ref()
-            .is_some_and(|h| !h.inner().is_finished())
-        {
+        if handle.as_ref().is_some_and(|h| !h.inner().is_finished()) {
             return;
         }
 
@@ -76,12 +73,15 @@ impl TrafficStatsManager {
     /// 停止后台采集任务 (优雅退出)
     pub fn stop(&self) {
         // 停止监控任务
-        if let Some(handle) = self.task_handle.lock().take() {
+        let mut task_handle = self.task_handle.lock();
+        if let Some(handle) = task_handle.take() {
             handle.abort();
         }
+        drop(task_handle);
 
         // 等待 batcher 线程结束
-        if let Some(handle) = self.batcher_handle.lock().take() {
+        let mut batcher_handle = self.batcher_handle.lock();
+        if let Some(handle) = batcher_handle.take() {
             let _ = handle.join();
         }
     }

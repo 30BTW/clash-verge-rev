@@ -1,7 +1,7 @@
 use anyhow::Result;
 use chrono::{DateTime, Utc};
 use parking_lot::Mutex;
-use rusqlite::{params, Connection};
+use rusqlite::{Connection, params};
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -29,13 +29,13 @@ impl SQLiteStore {
         let conn = Connection::open(&db_path)?;
 
         // 启用 WAL 模式
-        conn.pragma_update(None, "journal_mode", &"WAL")?;
+        conn.pragma_update(None, "journal_mode", "WAL")?;
         // 设置同步模式为 NORMAL (性能与安全平衡)
-        conn.pragma_update(None, "synchronous", &"NORMAL")?;
+        conn.pragma_update(None, "synchronous", "NORMAL")?;
         // 设置缓存大小 (负值表示 KB，正值表示页数)
-        conn.pragma_update(None, "cache_size", &-64000)?; // 64MB 缓存
+        conn.pragma_update(None, "cache_size", -64000)?; // 64MB 缓存
         // 启用增量自动清理 (避免 VACUUM 锁死数据库)
-        conn.pragma_update(None, "auto_vacuum", &"INCREMENTAL")?;
+        conn.pragma_update(None, "auto_vacuum", "INCREMENTAL")?;
 
         // 创建表和索引
         Self::init_schema(&conn)?;
@@ -49,7 +49,7 @@ impl SQLiteStore {
 
     fn init_schema(conn: &Connection) -> Result<()> {
         conn.execute_batch(
-            r#"
+            r"
             CREATE TABLE IF NOT EXISTS traffic_records (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 start_time TEXT NOT NULL,
@@ -69,49 +69,52 @@ impl SQLiteStore {
             CREATE INDEX IF NOT EXISTS idx_domain ON traffic_records(domain);
             CREATE INDEX IF NOT EXISTS idx_process ON traffic_records(process);
             CREATE INDEX IF NOT EXISTS idx_end_time ON traffic_records(end_time);
-            "#,
+            ",
         )?;
         Ok(())
     }
 
     /// 批量插入记录 (同步操作，需在 spawn_blocking 或独立线程中调用)
+    #[expect(clippy::significant_drop_tightening)]
     pub fn insert_batch(&self, records: &[TrafficRecord]) -> Result<()> {
         if records.is_empty() {
             return Ok(());
         }
 
-        let mut conn = self.conn.lock();
-        let tx = conn.transaction()?;
-
         {
-            let mut stmt = tx.prepare_cached(
-                r#"
-                INSERT INTO traffic_records (
-                    start_time, end_time, host, domain, process, process_path,
-                    upload, download, chains, rule, network, source_ip
-                ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)
-                "#,
-            )?;
+            let mut conn = self.conn.lock();
+            let tx = conn.transaction()?;
 
-            for record in records {
-                stmt.execute(params![
-                    record.start_time.to_rfc3339(),
-                    record.end_time.to_rfc3339(),
-                    record.host,
-                    record.domain,
-                    record.process,
-                    record.process_path,
-                    record.upload as i64,
-                    record.download as i64,
-                    record.chains,
-                    record.rule,
-                    record.network,
-                    record.source_ip,
-                ])?;
+            {
+                let mut stmt = tx.prepare_cached(
+                    r"
+                    INSERT INTO traffic_records (
+                        start_time, end_time, host, domain, process, process_path,
+                        upload, download, chains, rule, network, source_ip
+                    ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)
+                    ",
+                )?;
+
+                for record in records {
+                    stmt.execute(params![
+                        record.start_time.to_rfc3339(),
+                        record.end_time.to_rfc3339(),
+                        record.host,
+                        record.domain,
+                        record.process,
+                        record.process_path,
+                        record.upload as i64,
+                        record.download as i64,
+                        record.chains,
+                        record.rule,
+                        record.network,
+                        record.source_ip,
+                    ])?;
+                }
             }
-        }
 
-        tx.commit()?;
+            tx.commit()?;
+        }
 
         // 检查数据库大小
         self.check_db_size()?;
@@ -124,14 +127,12 @@ impl SQLiteStore {
         let mut count = self.write_count.lock();
         *count += 1;
 
-        if *count % DB_SIZE_CHECK_INTERVAL == 0 {
+        if (*count).is_multiple_of(DB_SIZE_CHECK_INTERVAL) {
             *count = 0;
             drop(count); // 释放锁
 
-            if let Ok(metadata) = std::fs::metadata(&self.db_path) {
-                if metadata.len() > MAX_DB_SIZE_BYTES {
-                    self.cleanup_old_records()?;
-                }
+            if std::fs::metadata(&self.db_path).is_ok_and(|m| m.len() > MAX_DB_SIZE_BYTES) {
+                self.cleanup_old_records()?;
             }
         }
 
@@ -139,18 +140,21 @@ impl SQLiteStore {
     }
 
     /// 清理旧记录 (保留最近 70% 的数据)
+    #[expect(clippy::significant_drop_tightening)]
     fn cleanup_old_records(&self) -> Result<()> {
-        let conn = self.conn.lock();
+        let (_, to_delete) = {
+            let conn = self.conn.lock();
 
-        // 获取总记录数
-        let total: i64 = conn.query_row("SELECT COUNT(*) FROM traffic_records", [], |row| {
-            row.get(0)
-        })?;
+            let total: i64 = conn.query_row("SELECT COUNT(*) FROM traffic_records", [], |row| row.get(0))?;
 
-        // 计算要删除的记录数 (删除 30%)
-        let to_delete = (total as f64 * 0.3) as i64;
+            // 计算要删除的记录数 (删除 30%)
+            let to_delete = (total as f64 * 0.3) as i64;
+
+            (total, to_delete)
+        };
 
         if to_delete > 0 {
+            let conn = self.conn.lock();
             conn.execute(
                 "DELETE FROM traffic_records WHERE id IN (
                     SELECT id FROM traffic_records ORDER BY end_time ASC LIMIT ?1
@@ -167,12 +171,13 @@ impl SQLiteStore {
     }
 
     /// 按域名聚合查询
+    #[expect(clippy::significant_drop_tightening)]
     pub fn query_by_domain(&self, params: &TrafficQueryParams) -> Result<Vec<TrafficAggregate>> {
         let conn = self.conn.lock();
         let limit = params.limit.unwrap_or(100);
 
         let mut stmt = conn.prepare_cached(
-            r#"
+            r"
             SELECT
                 domain as key,
                 SUM(upload) as total_upload,
@@ -185,7 +190,7 @@ impl SQLiteStore {
             GROUP BY domain
             ORDER BY total_download DESC
             LIMIT ?3
-            "#,
+            ",
         )?;
 
         let rows = stmt.query_map(
@@ -215,12 +220,13 @@ impl SQLiteStore {
     }
 
     /// 按进程聚合查询
+    #[expect(clippy::significant_drop_tightening)]
     pub fn query_by_process(&self, params: &TrafficQueryParams) -> Result<Vec<TrafficAggregate>> {
         let conn = self.conn.lock();
         let limit = params.limit.unwrap_or(100);
 
         let mut stmt = conn.prepare_cached(
-            r#"
+            r"
             SELECT
                 process as key,
                 SUM(upload) as total_upload,
@@ -233,7 +239,7 @@ impl SQLiteStore {
             GROUP BY process
             ORDER BY total_download DESC
             LIMIT ?3
-            "#,
+            ",
         )?;
 
         let rows = stmt.query_map(
@@ -263,12 +269,13 @@ impl SQLiteStore {
     }
 
     /// 按时间段查询原始记录
+    #[expect(clippy::significant_drop_tightening)]
     pub fn query_records(&self, params: &TrafficQueryParams) -> Result<Vec<TrafficRecord>> {
         let conn = self.conn.lock();
         let limit = params.limit.unwrap_or(100);
 
         let mut stmt = conn.prepare_cached(
-            r#"
+            r"
             SELECT
                 id, start_time, end_time, host, domain, process, process_path,
                 upload, download, chains, rule, network, source_ip
@@ -277,7 +284,7 @@ impl SQLiteStore {
               AND (?2 IS NULL OR end_time <= ?2)
             ORDER BY end_time DESC
             LIMIT ?3
-            "#,
+            ",
         )?;
 
         let rows = stmt.query_map(
@@ -318,11 +325,7 @@ impl SQLiteStore {
     }
 
     /// 获取统计概览
-    pub fn get_summary(
-        &self,
-        start: Option<DateTime<Utc>>,
-        end: Option<DateTime<Utc>>,
-    ) -> Result<TrafficSummary> {
+    pub fn get_summary(&self, start: Option<DateTime<Utc>>, end: Option<DateTime<Utc>>) -> Result<TrafficSummary> {
         let conn = self.conn.lock();
 
         let total_upload: i64 = conn.query_row(
@@ -354,6 +357,7 @@ impl SQLiteStore {
             params![start.as_ref().map(|t| t.to_rfc3339()), end.as_ref().map(|t| t.to_rfc3339())],
             |row| row.get(0),
         )?;
+        drop(conn);
 
         Ok(TrafficSummary {
             total_upload: total_upload as u64,

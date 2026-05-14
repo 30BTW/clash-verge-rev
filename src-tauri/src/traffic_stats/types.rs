@@ -35,6 +35,7 @@ pub struct TrafficRecord {
 /// 连接快照 (用于 diff 计算)
 #[derive(Debug, Clone)]
 pub struct ConnectionSnapshot {
+    #[expect(dead_code)]
     pub id: String,
     pub host: String,
     pub domain: String,

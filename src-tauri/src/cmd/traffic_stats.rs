@@ -50,10 +50,7 @@ pub async fn query_traffic_stats(params: TrafficQueryRequest) -> CmdResult<Vec<T
 
 /// 获取流量概览 (使用 spawn_blocking)
 #[tauri::command]
-pub async fn get_traffic_summary(
-    start: Option<String>,
-    end: Option<String>,
-) -> CmdResult<TrafficSummary> {
+pub async fn get_traffic_summary(start: Option<String>, end: Option<String>) -> CmdResult<TrafficSummary> {
     let start_dt = start
         .and_then(|s| DateTime::parse_from_rfc3339(&s).ok())
         .map(|dt| dt.with_timezone(&Utc));
@@ -61,11 +58,9 @@ pub async fn get_traffic_summary(
         .and_then(|s| DateTime::parse_from_rfc3339(&s).ok())
         .map(|dt| dt.with_timezone(&Utc));
 
-    let inner_result = tokio::task::spawn_blocking(move || {
-        TrafficStatsManager::global().get_summary(start_dt, end_dt)
-    })
-    .await
-    .map_err(|e| smartstring::alias::String::from(e.to_string()))?;
+    let inner_result = tokio::task::spawn_blocking(move || TrafficStatsManager::global().get_summary(start_dt, end_dt))
+        .await
+        .map_err(|e| smartstring::alias::String::from(e.to_string()))?;
 
     inner_result.map_err(|e| smartstring::alias::String::from(e.to_string()))
 }
