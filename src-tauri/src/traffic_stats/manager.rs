@@ -38,8 +38,7 @@ impl TrafficStatsManager {
 
     pub fn global() -> &'static Self {
         #[expect(clippy::expect_used)]
-        TRAFFIC_STATS_MANAGER
-            .get_or_init(|| Self::new().expect("Failed to initialize TrafficStatsManager"))
+        TRAFFIC_STATS_MANAGER.get_or_init(|| Self::new().expect("Failed to initialize TrafficStatsManager"))
     }
 
     /// 启动后台采集任务
