@@ -172,6 +172,8 @@
           "trayClickEvent": "トレイアイコンクリックイベント",
           "copyEnvType": "環境変数タイプをコピー",
           "startPage": "起動ページ",
+          "speedTestUrl": "Speed Test URL",
+          "speedTestUrlCustom": "Custom URL",
           "startupScript": "起動スクリプト",
           "themeSetting": "テーマ設定",
           "layoutSetting": "レイアウト設定",

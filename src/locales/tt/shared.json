@@ -26,6 +26,10 @@
     "next": "Next",
     "check": "Тикшерү"
   },
+  "speed": "Speed",
+  "speedPeak": "Peak",
+  "speedAvg": "Average",
+  "speedFail": "Speed test failed",
   "labels": {
     "updateAt": "Яңартылган вакыт",
     "timeout": "Timeout",

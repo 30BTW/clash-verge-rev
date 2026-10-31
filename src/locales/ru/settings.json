@@ -172,6 +172,8 @@
           "trayClickEvent": "Событие при щелчке по иконке в трее",
           "copyEnvType": "Скопировать тип Env",
           "startPage": "Главная страница",
+          "speedTestUrl": "Speed Test URL",
+          "speedTestUrlCustom": "Custom URL",
           "startupScript": "Скрипт запуска",
           "themeSetting": "Настройки темы",
           "layoutSetting": "Настройки раскладки",

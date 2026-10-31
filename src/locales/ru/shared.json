@@ -26,6 +26,10 @@
     "next": "Далее",
     "check": "Проверить"
   },
+  "speed": "Speed",
+  "speedPeak": "Peak",
+  "speedAvg": "Average",
+  "speedFail": "Speed test failed",
   "labels": {
     "updateAt": "Обновлено в",
     "timeout": "Тайм-аут",

@@ -172,6 +172,8 @@
           "trayClickEvent": "Tray-Klickereignis",
           "copyEnvType": "Umgebungsvariablentyp kopieren",
           "startPage": "Startseite",
+          "speedTestUrl": "Speed Test URL",
+          "speedTestUrlCustom": "Custom URL",
           "startupScript": "Startskript",
           "themeSetting": "Thema-Einstellungen",
           "layoutSetting": "Layout-Einstellungen",

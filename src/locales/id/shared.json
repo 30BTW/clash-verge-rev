@@ -26,6 +26,10 @@
     "next": "Next",
     "check": "Periksa"
   },
+  "speed": "Speed",
+  "speedPeak": "Peak",
+  "speedAvg": "Average",
+  "speedFail": "Speed test failed",
   "labels": {
     "updateAt": "Diperbarui Pada",
     "timeout": "Timeout",

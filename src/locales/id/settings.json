@@ -172,6 +172,8 @@
           "trayClickEvent": "Acara Klik Tray",
           "copyEnvType": "Salin Jenis Env",
           "startPage": "Halaman Mulai",
+          "speedTestUrl": "Speed Test URL",
+          "speedTestUrlCustom": "Custom URL",
           "startupScript": "Skrip Startup",
           "themeSetting": "Pengaturan Tema",
           "layoutSetting": "Pengaturan Tata Letak",

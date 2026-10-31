@@ -26,6 +26,10 @@
     "next": "Next",
     "check": "بررسی"
   },
+  "speed": "Speed",
+  "speedPeak": "Peak",
+  "speedAvg": "Average",
+  "speedFail": "Speed test failed",
   "labels": {
     "updateAt": "به‌روزرسانی در",
     "timeout": "Timeout",

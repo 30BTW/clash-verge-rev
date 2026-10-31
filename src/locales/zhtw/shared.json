@@ -26,6 +26,10 @@
     "next": "下一頁",
     "check": "檢測"
   },
+  "speed": "Speed",
+  "speedPeak": "Peak",
+  "speedAvg": "Average",
+  "speedFail": "Speed test failed",
   "labels": {
     "updateAt": "更新於",
     "timeout": "逾時",

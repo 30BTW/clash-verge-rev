@@ -172,6 +172,8 @@
           "trayClickEvent": "Трейдагы басу вакыйгасы",
           "copyEnvType": "Env төрен күчереп алу",
           "startPage": "Баш бит",
+          "speedTestUrl": "Speed Test URL",
+          "speedTestUrlCustom": "Custom URL",
           "startupScript": "Башлану скрипты",
           "themeSetting": "Тема көйләүләре",
           "layoutSetting": "Расположение көйләүләре",

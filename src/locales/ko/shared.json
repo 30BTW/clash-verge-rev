@@ -26,6 +26,10 @@
     "next": "Next",
     "check": "검사"
   },
+  "speed": "Speed",
+  "speedPeak": "Peak",
+  "speedAvg": "Average",
+  "speedFail": "Speed test failed",
   "labels": {
     "updateAt": "업데이트 시간",
     "timeout": "시간 초과",

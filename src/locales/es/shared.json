@@ -26,6 +26,10 @@
     "next": "Next",
     "check": "Comprobar"
   },
+  "speed": "Speed",
+  "speedPeak": "Peak",
+  "speedAvg": "Average",
+  "speedFail": "Speed test failed",
   "labels": {
     "updateAt": "Actualizado el",
     "timeout": "Timeout",

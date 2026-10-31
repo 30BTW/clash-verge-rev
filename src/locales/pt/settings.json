@@ -172,6 +172,8 @@
           "trayClickEvent": "Ação de Clique na Bandeja",
           "copyEnvType": "Tipo de Env ao Copiar",
           "startPage": "Página Inicial",
+          "speedTestUrl": "Speed Test URL",
+          "speedTestUrlCustom": "Custom URL",
           "startupScript": "Script de Inicialização",
           "themeSetting": "Configurações do Tema",
           "layoutSetting": "Configurações de Layout",

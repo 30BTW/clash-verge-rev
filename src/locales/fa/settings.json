@@ -172,6 +172,8 @@
           "trayClickEvent": "رویداد کلیک در سینی سیستم",
           "copyEnvType": "کپی نوع محیط",
           "startPage": "صفحه شروع",
+          "speedTestUrl": "Speed Test URL",
+          "speedTestUrlCustom": "Custom URL",
           "startupScript": "اسکریپت راه‌اندازی",
           "themeSetting": "تنظیمات تم",
           "layoutSetting": "تنظیمات چیدمان",

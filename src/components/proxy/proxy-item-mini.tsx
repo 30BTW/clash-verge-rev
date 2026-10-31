@@ -6,6 +6,7 @@ import { BaseLoading } from '@/components/base'
 import { ProxyQuickUnlock } from '@/components/proxy/proxy-quick-unlock'
 import { useProxyDelayState } from '@/hooks/use-proxy-delay-state'
 import delayManager from '@/services/delay'
+import { formatSpeed } from '@/services/speed'
 import {
   memberDetails,
   type ProxyGroupView,
@@ -32,10 +33,15 @@ export const ProxyItemMini = (props: Props) => {
   const { t } = useTranslation()
 
   // -1/<=0 为不显示，-2 为 loading
-  const { delayValue, isPreset, timeout, onDelay } = useProxyDelayState(
-    member,
-    group.name,
-  )
+  const {
+    delayValue,
+    speedValue,
+    peakValue,
+    speedError,
+    isPreset,
+    timeout,
+    onDelay,
+  } = useProxyDelayState(member, group.name)
 
   return (
     <ListItemButton
@@ -160,7 +166,10 @@ export const ProxyItemMini = (props: Props) => {
           ml: 0.5,
           color: 'primary.main',
           display: isPreset ? 'none' : 'flex',
-          alignItems: 'center',
+          flexDirection: 'column',
+          alignItems: 'flex-end',
+          justifyContent: 'center',
+          gap: '2px',
         }}
       >
         {!unresolved && type !== 'Direct' && (
@@ -208,6 +217,36 @@ export const ProxyItemMini = (props: Props) => {
           >
             {delayManager.formatDelay(delayValue, timeout)}
           </Widget>
+        )}
+
+        {!unresolved && speedValue === -2 && (
+          <Box
+            component="span"
+            title={t('shared.speed')}
+            sx={{ fontSize: 10, color: 'text.secondary', lineHeight: 1 }}
+          >
+            ↓ …
+          </Box>
+        )}
+
+        {!unresolved && speedValue > 0 && (
+          <Box
+            component="span"
+            title={`${t('shared.speed')} · ${t('shared.speedPeak')} ${formatSpeed(peakValue)} · ${t('shared.speedAvg')} ${formatSpeed(speedValue)}`}
+            sx={{ fontSize: 10, color: 'text.secondary', lineHeight: 1 }}
+          >
+            ↓ {formatSpeed(peakValue > 0 ? peakValue : speedValue)}
+          </Box>
+        )}
+
+        {!unresolved && !speedValue && speedError && (
+          <Box
+            component="span"
+            title={speedError}
+            sx={{ fontSize: 10, color: 'error.main', lineHeight: 1 }}
+          >
+            {t('shared.speedFail')}
+          </Box>
         )}
         {!unresolved &&
           type !== 'Direct' &&

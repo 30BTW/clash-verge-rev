@@ -26,6 +26,10 @@
     "next": "Next",
     "check": "فحص"
   },
+  "speed": "Speed",
+  "speedPeak": "Peak",
+  "speedAvg": "Average",
+  "speedFail": "Speed test failed",
   "labels": {
     "updateAt": "التحديث عند",
     "timeout": "Timeout",
