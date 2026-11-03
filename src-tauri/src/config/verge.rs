@@ -67,6 +67,33 @@ pub struct IVerge {
 
     pub enable_tun_mode: Option<bool>,
 
+    /// Wi-Fi hotspot that shares the TUN uplink (Windows only).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[specta(type = Option<std::string::String>)]
+    pub hotspot_ssid: Option<String>,
+
+    #[serde(
+        serialize_with = "serialize_encrypted",
+        deserialize_with = "deserialize_encrypted",
+        skip_serializing_if = "Option::is_none",
+        default
+    )]
+    #[specta(type = Option<std::string::String>)]
+    pub hotspot_password: Option<String>,
+
+    /// `auto`, `2.4` or `5`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[specta(type = Option<std::string::String>)]
+    pub hotspot_band: Option<String>,
+
+    /// Wi-Fi adapter GUID; empty selects the radio Windows prefers.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[specta(type = Option<std::string::String>)]
+    pub hotspot_adapter_id: Option<String>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hotspot_auto_start: Option<bool>,
+
     pub enable_auto_launch: Option<bool>,
 
     pub enable_silent_start: Option<bool>,
@@ -426,6 +453,11 @@ impl IVerge {
         patch_opt_field!(self, patch, tun_tray_icon);
 
         patch_opt_field!(self, patch, enable_tun_mode);
+        patch_opt_field!(self, patch, hotspot_ssid);
+        patch_opt_field!(self, patch, hotspot_password);
+        patch_opt_field!(self, patch, hotspot_band);
+        patch_opt_field!(self, patch, hotspot_adapter_id);
+        patch_opt_field!(self, patch, hotspot_auto_start);
         patch_opt_field!(self, patch, enable_auto_launch);
         patch_opt_field!(self, patch, enable_silent_start);
         patch_opt_field!(self, patch, enable_hover_jump_navigator);
