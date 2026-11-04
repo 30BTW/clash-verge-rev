@@ -226,6 +226,22 @@ export const commands = {
     __TAURI_INVOKE<UnlockItem[]>('check_media_unlock', { onComplete }),
   checkMediaUnlockItem: (name: string) =>
     __TAURI_INVOKE<UnlockItem>('check_media_unlock_item', { name }),
+  /**  Aggregate traffic records grouped by domain or process. */
+  queryTrafficStats: (
+    start: string | null,
+    end: string | null,
+    groupBy: string,
+    limit: number | null,
+  ) =>
+    __TAURI_INVOKE<TrafficAggregate[]>('query_traffic_stats', {
+      start,
+      end,
+      groupBy,
+      limit,
+    }),
+  /**  Overview totals for a time range. */
+  getTrafficSummary: (start: string | null, end: string | null) =>
+    __TAURI_INVOKE<TrafficSummary>('get_traffic_summary', { start, end }),
 }
 
 /* Types */
@@ -994,6 +1010,25 @@ export type SystemProxy = {
 export type ToggleableProxyPort = {
   enabled: boolean
   port: number
+}
+
+/**  Aggregated traffic grouped by domain or process. */
+export type TrafficAggregate = {
+  /**  Group key: domain or process name. */
+  key: string
+  total_upload: number
+  total_download: number
+  connection_count: number
+  last_active: string
+}
+
+/**  Overview statistics for a time range. */
+export type TrafficSummary = {
+  total_upload: number
+  total_download: number
+  total_connections: number
+  unique_domains: number
+  unique_processes: number
 }
 
 export type UnlockItem = {

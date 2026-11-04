@@ -90,6 +90,7 @@ async fn resolve_setup() {
         init_auto_lightweight_boot(),
         init_auto_backup(),
         init_silent_updater(),
+        init_traffic_stats(),
     );
 
     Handle::refresh_clash();
@@ -164,6 +165,13 @@ async fn init_auto_lightweight_boot() {
 
 async fn init_auto_backup() {
     logging_error!(Type::Setup, AutoBackupManager::global().init().await);
+}
+
+async fn init_traffic_stats() {
+    logging_error!(
+        Type::Setup,
+        crate::traffic_stats::TrafficStatsManager::global().init().await
+    );
 }
 
 async fn init_silent_updater() {

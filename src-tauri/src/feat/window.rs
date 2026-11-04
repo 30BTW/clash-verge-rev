@@ -135,6 +135,9 @@ pub async fn quit() {
     // 设置退出标志
     handle::Handle::global().set_is_exiting();
 
+    // Flush traffic stats buffers before the async runtime starts tearing down.
+    crate::traffic_stats::TrafficStatsManager::global().stop().await;
+
     Config::apply_all_and_save_file().await;
 
     let cleanup_result = clean_async().await;
