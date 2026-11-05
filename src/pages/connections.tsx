@@ -203,8 +203,8 @@ const ConnectionsPage = () => {
     setDomainRuleTarget({
       host: domainRuleMenu.host,
       profileUid: current.uid,
-      rulesUid: current.option.rules,
-      profileName: current.name,
+      rulesUid: current.option.rules ?? undefined,
+      profileName: current.name ?? undefined,
     })
     closeDomainRuleMenu()
   }, [closeDomainRuleMenu, current, domainRuleMenu])
@@ -409,8 +409,8 @@ const ConnectionsPage = () => {
       {domainRuleTarget && (
         <AddDomainRuleDialog
           target={domainRuleTarget}
-          activeProfileUid={current?.uid}
-          activeRulesUid={current?.option?.rules}
+          activeProfileUid={current?.uid ?? undefined}
+          activeRulesUid={current?.option?.rules ?? undefined}
           proxyPolicies={proxyView?.groups.map((group) => group.name) ?? []}
           clashMode={clashConfig?.mode}
           onClose={() => setDomainRuleTarget(null)}

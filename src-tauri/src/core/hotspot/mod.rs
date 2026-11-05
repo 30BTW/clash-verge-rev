@@ -386,3 +386,46 @@ async fn config_from_verge() -> Result<HotspotStartConfig> {
     validate_start_config(&config)?;
     Ok(config)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn config(ssid: &str, password: &str, band: &str) -> HotspotStartConfig {
+        HotspotStartConfig {
+            ssid: ssid.to_owned(),
+            password: password.to_owned(),
+            band: band.to_owned(),
+            adapter_id: None,
+        }
+    }
+
+    #[test]
+    fn validates_hotspot_credentials() {
+        assert!(validate_start_config(&config("ClashVerge", "password123", "auto")).is_ok());
+        assert!(validate_start_config(&config("", "password123", "auto")).is_err());
+        assert!(validate_start_config(&config("ssid", "short", "auto")).is_err());
+        assert!(validate_start_config(&config("ssid", "password123", "6")).is_err());
+        assert!(
+            validate_start_config(&HotspotStartConfig {
+                adapter_id: Some("not-a-guid".into()),
+                ..config("ClashVerge", "password123", "auto")
+            })
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn unchanged_status_is_published_once() {
+        let status = HotspotStatus {
+            state: HotspotState::Running,
+            ssid: "ClashVerge".into(),
+            ..HotspotStatus::default()
+        };
+        assert_eq!(status_signature(&status), status_signature(&status.clone()));
+
+        let mut changed = status.clone();
+        changed.clients = 1;
+        assert_ne!(status_signature(&status), status_signature(&changed));
+    }
+}

@@ -16,8 +16,8 @@ import type {
   ProfilePatch,
   ProfileCreate,
   SpeedTestResult,
-  HotspotStartConfig_Deserialize as HotspotStartConfig,
-  HotspotConfigPatch_Deserialize as HotspotConfigPatch,
+  HotspotStartConfig,
+  HotspotConfigPatch,
 } from './bindings'
 
 export type {
@@ -33,10 +33,10 @@ export type {
   UnlockItem,
   TrafficAggregate,
   TrafficSummary,
-  HotspotStatus_Serialize as HotspotStatus,
+  HotspotStatus,
   HotspotAdapter,
-  HotspotStartConfig_Deserialize as HotspotStartConfig,
-  HotspotConfigPatch_Deserialize as HotspotConfigPatch,
+  HotspotStartConfig,
+  HotspotConfigPatch,
   HotspotState,
 } from './bindings'
 

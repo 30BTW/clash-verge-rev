@@ -142,7 +142,6 @@ export const ProxyItem = (props: Props) => {
 
         <ListItemIcon
           sx={{
-            minWidth: 'auto',
             alignItems: 'center',
             justifyContent: 'flex-end',
             color: 'primary.main',
