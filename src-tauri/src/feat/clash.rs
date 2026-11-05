@@ -208,6 +208,11 @@ pub struct SpeedTestResult {
     pub connections: u32,
 }
 
+/// Serializes speed tests: the measurement temporarily switches the group's
+/// selected node and restores it afterwards, so concurrent runs would
+/// overwrite each other's switch/restore and pollute the results.
+static SPEED_TEST_LOCK: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
+
 /// Measure download throughput.
 ///
 /// When `proxy_name` is provided, the node is temporarily selected in its first
@@ -220,6 +225,8 @@ pub struct SpeedTestResult {
 #[tracing::instrument(skip_all, level = "trace", fields(url = %url, proxy_name = ?proxy_name))]
 pub async fn test_speed(url: String, proxy_name: Option<String>, timeout_ms: u64) -> anyhow::Result<SpeedTestResult> {
     use std::time::{Duration, Instant};
+
+    let _speed_guard = SPEED_TEST_LOCK.lock().await;
 
     let parsed = tauri::Url::parse(&url)?;
     let is_https = parsed.scheme() == "https";
@@ -235,13 +242,10 @@ pub async fn test_speed(url: String, proxy_name: Option<String>, timeout_ms: u64
         _ => path.to_string(),
     };
 
-    let verge = Config::verge().await.latest_arc();
-    let proxy_enabled = verge.enable_system_proxy.unwrap_or(false) || verge.enable_tun_mode.unwrap_or(false);
-    let proxy_port = if proxy_enabled {
-        Some(MixedPort::desired().await)
-    } else {
-        None
-    };
+    // Always route through the mixed port: it keeps listening regardless of
+    // the system-proxy / TUN switches, while a direct connection would measure
+    // the raw line instead of the selected node.
+    let proxy_port = Some(MixedPort::desired().await);
 
     // Optionally route through a specific node by selecting it in its group.
     let mut restore: Option<(std::string::String, std::string::String)> = None;

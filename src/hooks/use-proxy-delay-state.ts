@@ -49,9 +49,7 @@ export interface UseProxyDelayState {
 export function useProxyDelayState(
   member: ResolvedProxyMember,
   groupName: string,
-  options: { withSpeed?: boolean } = {},
 ): UseProxyDelayState {
-  const { withSpeed = true } = options
   const name = member.ref.name
   const details = memberDetails(member)
   const unresolved = member.kind === 'unresolved'
@@ -126,7 +124,6 @@ export function useProxyDelayState(
     })
     const delayUpd = await delayManager.checkDelay(member, groupName, timeout)
     setDelayState(delayUpd)
-    if (!withSpeed) return
     try {
       const speedUpd = await speedManager.checkSpeed(
         name,

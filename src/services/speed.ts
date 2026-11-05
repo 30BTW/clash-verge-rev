@@ -81,7 +81,7 @@ class SpeedManager {
   }
 
   removeListener(name: string, group: string) {
-    this.setListener(name, group, () => {})
+    this.listeners.delete(hashKey(name, group))
   }
 
   private notify(key: string, update: SpeedUpdate) {
