@@ -266,8 +266,7 @@ impl SQLiteStore {
         let rows = stmt.query_map(refs.as_slice(), |row| {
             let last_active_str: String = row.get(4)?;
             let last_active = DateTime::parse_from_rfc3339(&last_active_str)
-                .map(|dt| dt.with_timezone(&Utc))
-                .unwrap_or_else(|_| Utc::now());
+                .map_or_else(|_| Utc::now(), |dt| dt.with_timezone(&Utc));
 
             Ok(TrafficAggregate {
                 key: row.get(0)?,

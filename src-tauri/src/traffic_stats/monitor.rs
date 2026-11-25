@@ -230,8 +230,7 @@ fn parse_connection(conn: &Connection) -> ConnectionSnapshot {
         upload: conn.upload,
         download: conn.download,
         start_time: chrono::DateTime::parse_from_rfc3339(&conn.start)
-            .map(|dt| dt.with_timezone(&Utc))
-            .unwrap_or_else(|_| Utc::now()),
+            .map_or_else(|_| Utc::now(), |dt| dt.with_timezone(&Utc)),
         chains: conn.chains.clone(),
         rule: conn.rule.clone(),
         network: format!("{:?}", metadata.network).to_lowercase(),
