@@ -66,6 +66,7 @@ tauri-plugin-clipboard-manager = "2.5.0"
 parking_lot = "0.13.0"
 anyhow = "1.0.105"
 chrono = "0.4.45"
+rusqlite = { version = "0.41.1", features = ["bundled"] }
 criterion = { version = "0.8.2", features = ["async_tokio"] }
 tokio = { version = "1.54.1", features = [
   "rt-multi-thread",
@@ -95,6 +96,7 @@ deelevate = "0.2.0"
 windows-sys = { version = "0.61.2", features = [
   "Win32_Foundation",
   "Win32_NetworkManagement_IpHelper",
+  "Win32_NetworkManagement_Ndis",
   "Win32_Networking_WinSock",
   "Win32_Security",
   "Win32_Security_Authorization",

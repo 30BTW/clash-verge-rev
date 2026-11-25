@@ -70,6 +70,11 @@ verge_registry! {
     sysproxy_tray_icon => [TrayIcon];
     tun_tray_icon => [TrayIcon];
     enable_tun_mode => Tun;
+    hotspot_ssid => NoEffect;
+    hotspot_password => NoEffect;
+    hotspot_band => NoEffect;
+    hotspot_adapter_id => NoEffect;
+    hotspot_auto_start => NoEffect;
     enable_auto_launch => [Autostart];
     enable_silent_start => NoEffect;
     enable_system_proxy => [SystemProxy, TrayMenu, TrayTooltip, TrayIcon];

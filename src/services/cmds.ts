@@ -15,6 +15,8 @@ import type {
   ProfileSelection,
   ProfilePatch,
   ProfileCreate,
+  HotspotStartConfig_Deserialize as HotspotStartConfig,
+  HotspotConfigPatch_Deserialize as HotspotConfigPatch,
 } from './bindings'
 
 export type {
@@ -28,6 +30,13 @@ export type {
   ListenerTransport,
   ListenerProbe,
   UnlockItem,
+  TrafficAggregate,
+  TrafficSummary,
+  HotspotStatus_Serialize as HotspotStatus,
+  HotspotAdapter,
+  HotspotStartConfig_Deserialize as HotspotStartConfig,
+  HotspotConfigPatch_Deserialize as HotspotConfigPatch,
+  HotspotState,
 } from './bindings'
 
 export async function copyClashEnv() {
@@ -379,6 +388,26 @@ export async function getNetworkInterfaces() {
   return commands.getNetworkInterfaces()
 }
 
+export async function getHotspotStatus() {
+  return commands.getHotspotStatus()
+}
+
+export async function listHotspotAdapters() {
+  return commands.listHotspotAdapters()
+}
+
+export async function startHotspot(config: HotspotStartConfig) {
+  return commands.startHotspot(config)
+}
+
+export async function stopHotspot() {
+  return commands.stopHotspot()
+}
+
+export async function saveHotspotConfig(config: HotspotConfigPatch) {
+  return commands.saveHotspotConfig(config)
+}
+
 export async function getSystemHostname() {
   return commands.getSystemHostname()
 }
@@ -502,4 +531,20 @@ export async function checkMediaUnlock(onComplete: Channel<UnlockItem>) {
 
 export async function checkMediaUnlockItem(name: string) {
   return commands.checkMediaUnlockItem(name)
+}
+
+export async function queryTrafficStats(
+  start: string | null,
+  end: string | null,
+  groupBy: 'domain' | 'process',
+  limit: number | null,
+) {
+  return commands.queryTrafficStats(start, end, groupBy, limit)
+}
+
+export async function getTrafficSummary(
+  start: string | null,
+  end: string | null,
+) {
+  return commands.getTrafficSummary(start, end)
 }

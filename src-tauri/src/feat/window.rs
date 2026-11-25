@@ -133,6 +133,9 @@ pub async fn open_or_close_dashboard() {
 pub(crate) async fn run_exit_cleanup_flow(stop_failed_notice: NoticeStatus) -> CleanupResult {
     handle::Handle::global().set_is_exiting();
 
+    // Flush traffic stats buffers before the async runtime starts tearing down.
+    crate::traffic_stats::TrafficStatsManager::global().stop().await;
+
     Config::apply_all_and_save_file().await;
 
     let cleanup_result = clean_async().await;
@@ -177,10 +180,48 @@ pub async fn quit() {
     app_handle.exit(if cleanup_result.all_success { 0 } else { 1 });
 }
 
+/// Stops the Wi-Fi hotspot before the TUN disappears; ICS would otherwise leave
+/// an access point without an uplink.
+async fn stop_hotspot_before_core() {
+    use crate::core::hotspot::{HotspotManager, HotspotState};
+
+    if !HotspotManager::is_supported() {
+        return;
+    }
+
+    let manager = HotspotManager::global();
+    if matches!(
+        manager.status().state,
+        HotspotState::Stopped | HotspotState::Failed | HotspotState::Unsupported
+    ) {
+        return;
+    }
+
+    logging!(debug, Type::System, "Stopping the Wi-Fi hotspot before the core");
+    match tokio::time::timeout(std::time::Duration::from_secs(15), manager.stop()).await {
+        Ok(Ok(_)) => {}
+        Ok(Err(error)) => {
+            logging!(
+                warn,
+                Type::Window,
+                "Failed to stop the Wi-Fi hotspot during cleanup: {error:#}"
+            );
+        }
+        Err(_) => {
+            logging!(
+                warn,
+                Type::Window,
+                "Timed out stopping the Wi-Fi hotspot during cleanup"
+            );
+        }
+    }
+}
+
 pub async fn clean_async() -> CleanupResult {
     let stop_error = Mutex::new(None);
     let mut result = run_interactive_cleanup_transition(
         || async {
+            stop_hotspot_before_core().await;
             logging!(debug, Type::System, "Stopping core for interactive quit or restart");
             match CoreManager::global().stop_core().await {
                 Ok(()) => true,
@@ -263,6 +304,7 @@ async fn clean_session_ending_best_effort() -> CleanupResult {
 
     let result = run_session_ending_cleanup_transition(
         || async {
+                    stop_hotspot_before_core().await;
                     let _ = handle::Handle::mihomo().clear_all_ws_connections();
                     match CoreManager::global().stop_core().await {
                 Ok(()) => {

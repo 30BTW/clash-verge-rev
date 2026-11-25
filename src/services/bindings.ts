@@ -22,6 +22,15 @@ export const commands = {
   getNetworkInterfaces: () =>
     __TAURI_INVOKE<string[]>('get_network_interfaces'),
   getSystemHostname: () => __TAURI_INVOKE<string>('get_system_hostname'),
+  getHotspotStatus: () =>
+    __TAURI_INVOKE<HotspotStatus_Serialize>('get_hotspot_status'),
+  listHotspotAdapters: () =>
+    __TAURI_INVOKE<HotspotAdapter[]>('list_hotspot_adapters'),
+  startHotspot: (config: HotspotStartConfig_Deserialize) =>
+    __TAURI_INVOKE<HotspotStatus_Serialize>('start_hotspot', { config }),
+  stopHotspot: () => __TAURI_INVOKE<HotspotStatus_Serialize>('stop_hotspot'),
+  saveHotspotConfig: (config: HotspotConfigPatch_Deserialize) =>
+    __TAURI_INVOKE<null>('save_hotspot_config', { config }),
   restartApp: () => __TAURI_INVOKE<null>('restart_app'),
   installUpdate: (
     version: string,
@@ -184,6 +193,22 @@ export const commands = {
     }),
   checkMediaUnlockItem: (name: string) =>
     __TAURI_INVOKE<UnlockItem_Serialize>('check_media_unlock_item', { name }),
+  /**  Aggregate traffic records grouped by domain or process. */
+  queryTrafficStats: (
+    start: string | null,
+    end: string | null,
+    groupBy: string,
+    limit: number | null,
+  ) =>
+    __TAURI_INVOKE<TrafficAggregate[]>('query_traffic_stats', {
+      start,
+      end,
+      groupBy,
+      limit,
+    }),
+  /**  Overview totals for a time range. */
+  getTrafficSummary: (start: string | null, end: string | null) =>
+    __TAURI_INVOKE<TrafficSummary>('get_traffic_summary', { start, end }),
 }
 
 /* Types */
@@ -302,6 +327,106 @@ export type FailedOperation =
   | 'systemProxyRestore'
   | 'systemProxyGuard'
 
+export type HotspotAdapter = {
+  id: string
+  name: string
+  description: string
+  status: string
+}
+
+/**
+ *  The hotspot password is stored encrypted, so the plaintext form value cannot
+ *  travel through `patch_verge_config` (its deserializer expects ciphertext).
+ */
+export type HotspotConfigPatch =
+  | HotspotConfigPatch_Serialize
+  | HotspotConfigPatch_Deserialize
+
+/**
+ *  The hotspot password is stored encrypted, so the plaintext form value cannot
+ *  travel through `patch_verge_config` (its deserializer expects ciphertext).
+ */
+export type HotspotConfigPatch_Deserialize = {
+  ssid: string
+  password: string
+  band: string
+  adapterId?: string | null
+  autoStart: boolean
+}
+
+/**
+ *  The hotspot password is stored encrypted, so the plaintext form value cannot
+ *  travel through `patch_verge_config` (its deserializer expects ciphertext).
+ */
+export type HotspotConfigPatch_Serialize = {
+  ssid: string
+  password: string
+  band: string
+  adapterId: string | null
+  autoStart: boolean
+}
+
+export type HotspotDevice = {
+  mac: string
+  hosts: string[]
+}
+
+export type HotspotStartConfig =
+  | HotspotStartConfig_Serialize
+  | HotspotStartConfig_Deserialize
+
+export type HotspotStartConfig_Deserialize = {
+  ssid: string
+  password: string
+  /**  `auto`, `2.4` or `5`. */
+  band: string
+  /**  Wi-Fi adapter GUID; empty selects the radio Windows prefers. */
+  adapterId?: string | null
+}
+
+export type HotspotStartConfig_Serialize = {
+  ssid: string
+  password: string
+  /**  `auto`, `2.4` or `5`. */
+  band: string
+  /**  Wi-Fi adapter GUID; empty selects the radio Windows prefers. */
+  adapterId: string | null
+}
+
+export type HotspotState =
+  | 'stopped'
+  | 'starting'
+  | 'running'
+  | 'stopping'
+  | 'failed'
+  | 'unsupported'
+
+export type HotspotStatus = HotspotStatus_Serialize | HotspotStatus_Deserialize
+
+export type HotspotStatus_Deserialize = {
+  state: HotspotState
+  ssid: string
+  band: string
+  clients: number
+  gateway?: string | null
+  adapter?: string | null
+  message?: string | null
+  devices: HotspotDevice[]
+  updatedAt: number
+}
+
+export type HotspotStatus_Serialize = {
+  state: HotspotState
+  ssid: string
+  band: string
+  clients: number
+  gateway: string | null
+  adapter: string | null
+  message: string | null
+  devices: HotspotDevice[]
+  updatedAt: number
+}
+
 /**  Define the `profiles.yaml` schema */
 export type IProfiles = IProfiles_Serialize | IProfiles_Deserialize
 
@@ -394,6 +519,14 @@ export type IVerge_Deserialize = {
   sysproxy_tray_icon?: boolean | null
   tun_tray_icon?: boolean | null
   enable_tun_mode?: boolean | null
+  /**  Wi-Fi hotspot that shares the TUN uplink (Windows only). */
+  hotspot_ssid?: string | null
+  hotspot_password?: string | null
+  /**  `auto`, `2.4` or `5`. */
+  hotspot_band?: string | null
+  /**  Wi-Fi adapter GUID; empty selects the radio Windows prefers. */
+  hotspot_adapter_id?: string | null
+  hotspot_auto_start?: boolean | null
   enable_auto_launch?: boolean | null
   enable_silent_start?: boolean | null
   enable_system_proxy?: boolean | null
@@ -485,6 +618,14 @@ export type IVerge_Serialize = {
   sysproxy_tray_icon: boolean | null
   tun_tray_icon: boolean | null
   enable_tun_mode: boolean | null
+  /**  Wi-Fi hotspot that shares the TUN uplink (Windows only). */
+  hotspot_ssid?: string
+  hotspot_password?: string
+  /**  `auto`, `2.4` or `5`. */
+  hotspot_band?: string
+  /**  Wi-Fi adapter GUID; empty selects the radio Windows prefers. */
+  hotspot_adapter_id?: string
+  hotspot_auto_start?: boolean
   enable_auto_launch: boolean | null
   enable_silent_start: boolean | null
   enable_system_proxy: boolean | null
@@ -1080,6 +1221,25 @@ export type ToggleableProxyPort = {
   port: number
 }
 
+/**  Aggregated traffic grouped by domain or process. */
+export type TrafficAggregate = {
+  /**  Group key: domain or process name. */
+  key: string
+  total_upload: number
+  total_download: number
+  connection_count: number
+  last_active: string
+}
+
+/**  Overview statistics for a time range. */
+export type TrafficSummary = {
+  total_upload: number
+  total_download: number
+  total_connections: number
+  unique_domains: number
+  unique_processes: number
+}
+
 export type UnlockItem = UnlockItem_Serialize | UnlockItem_Deserialize
 
 export type UnlockItem_Deserialize = {
@@ -1130,6 +1290,7 @@ export type VergeEventPayloads_Deserialize = {
   'profile-update-started': ProfileUpdatePayload
   'profile-update-completed': ProfileUpdatePayload
   'verge://run-state-changed': RunStateView_Deserialize
+  'verge://hotspot-status-changed': HotspotStatus_Deserialize
   'verge://pending-failures-changed': null
 }
 
@@ -1144,6 +1305,7 @@ export type VergeEventPayloads_Serialize = {
   'profile-update-started': ProfileUpdatePayload
   'profile-update-completed': ProfileUpdatePayload
   'verge://run-state-changed': RunStateView_Serialize
+  'verge://hotspot-status-changed': HotspotStatus_Serialize
   'verge://pending-failures-changed': null
 }
 
