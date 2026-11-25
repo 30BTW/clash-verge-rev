@@ -95,6 +95,7 @@ mod platform {
     use super::{CmdResult, HotspotConfigPatch};
     use crate::cmd::CommandFailure;
 
+    #[allow(clippy::unused_async)]
     pub async fn save_hotspot_config(_config: HotspotConfigPatch) -> CmdResult<()> {
         Err(CommandFailure::plain("the Wi-Fi hotspot is only supported on Windows"))
     }

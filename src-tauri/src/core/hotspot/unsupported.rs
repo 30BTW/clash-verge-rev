@@ -13,9 +13,10 @@ impl Worker {
         true
     }
 
-    pub(crate) fn join(self) {}
+    pub(crate) const fn join(self) {}
 
-    pub(crate) fn stop(self) -> Result<()> {
+    #[allow(clippy::unnecessary_wraps)]
+    pub(crate) const fn stop(self) -> Result<()> {
         Ok(())
     }
 }

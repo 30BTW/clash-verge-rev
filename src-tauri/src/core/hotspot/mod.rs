@@ -353,7 +353,7 @@ pub fn start_auto_watch() {
 }
 
 #[cfg(not(windows))]
-pub fn start_auto_watch() {}
+pub const fn start_auto_watch() {}
 
 #[cfg(windows)]
 fn logging_hotspot_auto_start_failure(error: &anyhow::Error) {

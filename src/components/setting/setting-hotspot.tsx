@@ -117,13 +117,13 @@ const SettingHotspot = ({ onError }: Props) => {
           onCatch={onError}
           onFormat={(_event, value: boolean) => value}
           onChange={(value) => {
-            mutateVerge({ ...verge, hotspot_auto_start: value })
+            mutateVerge((prev) => ({ ...prev, hotspot_auto_start: value }))
           }}
           onGuard={async (value) => {
             try {
               await patchVerge({ hotspot_auto_start: value })
             } catch (error) {
-              mutateVerge({ ...verge, hotspot_auto_start: !value })
+              mutateVerge((prev) => ({ ...prev, hotspot_auto_start: !value }))
               throw error
             }
           }}
